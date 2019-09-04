@@ -7,15 +7,14 @@ Install the extension for Chrome at [the Chrome Web Store](https://chrome.google
 This is a Chrome extension that automatically rewrites journal URLs to include
 the WashU library proxies (both Danforth and Becker proxies).
 
-These proxies are:
+The proxy is:
 
- * https://beckerproxy.wustl.edu
- * https://login.libproxy.wustl.edu
+ * https://access.library.miami.edu
 
-e.g. nature.com would become: nature.com.beckerproxy.wustl.edu OR nature.com.libproxy.wustl.edu
+e.g. nature.com would become: nature.com.access.library.miami.edu
 
 
-NOTE: This extension requires either a WUSTL Key or a Becker Proxy account.
+NOTE: This extension requires a Cane ID and library proxy access.
 
 ## Options
 
