@@ -1,6 +1,6 @@
-# WashU Library Chrome Extension
+# Miami Library Chrome Extension
 
-Install the extension for Chrome at [the Chrome Web Store](https://chrome.google.com/webstore/detail/amamhphjnhlgdpjhfmnkikcingjfoeao).
+Install the extension for Chrome at [the Chrome Web Store](https://chrome.google.com/webstore/detail/).
 
 ## Overview
 
@@ -30,13 +30,12 @@ NOTE: This extension requires either a WUSTL Key or a Becker Proxy account.
 
 
 ## Authors
-**Nick Semenkovich**
+**Mike Rizzo**
 
-+ https://github.com/semenko/
-+ https://nick.semenkovich.com/
+Based on by  [WashU Library Chrome Extension](https://github.com/semenko/washu-library-proxy-chrome-extension) by [Nick Semenkovich](https://github.com/semenko/)
 
 ## License
-Copyright 2011-2015, Nick Semenkovich <semenko@alum.mit.edu>
+Copyright 2019, Mike Rizzo
 
 Released under the MIT License. See LICENSE for details.
 
