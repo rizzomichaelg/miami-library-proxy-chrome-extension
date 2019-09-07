@@ -5,7 +5,7 @@ Install the extension for Chrome at [the Chrome Web Store](https://chrome.google
 ## Overview
 
 This is a Chrome extension that automatically rewrites journal URLs to include
-the WashU library proxies (both Danforth and Becker proxies).
+the Miami library proxy.
 
 The proxy is:
 

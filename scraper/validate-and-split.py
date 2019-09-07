@@ -1,73 +1,40 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# We don't trust anything Becker/Danforth says. Explicitly validate the URLs
-# by trying to connect to both proxies, then build:
-# becker.txt
-# danforth.txt
-# intersect.txt
-
 import time
-import urllib
+import urllib.request
 
-raw_input("Press Enter to continue...")
+input("Press Enter to continue...")
 
-fintersect = open('intersect.txt', 'w')
-fbecker = open('becker.txt', 'w')
-fdanforth = open('danforth.txt', 'w')
-
-
-def valid_becker_domain_list(requested_domain):
-    """
-    Returns possibly valid URLs from the beckerproxy server.
-    """
-    valid_list = []
-    valid_list.append("https://login.beckerproxy.wustl.edu/login?url=http://" + line + "/")
-    valid_list.append("https://beckerproxy.wustl.edu/login?url=http://" + line + "/")
-    return valid_list
-
+outrows = []
 
 for line in open('all-journals.txt', 'r'):
     line = line.rstrip()
-    print line
+    print(line)
 
-    becker = True
-    danforth = True
+    valid = True
 
-    # Check Becker
-    failed = True
-    while failed:
-        try:
-            b = urllib.urlopen("http://%s.beckerproxy.wustl.edu/" % line)
-            failed = False
-        except IOError:
-            print("Failure! %s" % line)
-            time.sleep(0.1)
-        
-    if (b.getcode() != 200 or b.geturl() not in valid_becker_domain_list(line)):
-        becker = False
-
-    # Check Danforth
-    failed = True
-    while failed:
-        try:
-            d = urllib.urlopen("http://%s.libproxy.wustl.edu/" % line)
-            failed = False
-        except IOError:
-            print("Failure! %s" % line)
-            time.sleep(0.1)
-
-    if (d.getcode() != 200 or d.geturl() != "https://login.libproxy.wustl.edu/login?url=http://" + line + "/"):
-        danforth = False
+    # Check
+    # FIXME
+    # failed = True
+    # while failed:
+    #     try:
+    #         b = urllib.request.urlopen("http://{}.access.library.miami.edu/".format(line))
+    #         failed = False
+    #     except IOError:
+    #         print("Failure! %s" % line)
+    #         time.sleep(0.1)
+    # import pdb; pdb.set_trace()
+    # if (b.getcode() != 200 or b.geturl()):
+    #     valid = False
 
     # Write output
-    if becker and danforth:
-        print >>fintersect, line
-    elif danforth:
-        print >>fdanforth, line
-    elif becker:
-        print >>fbecker, line
+    if valid:
+        outrows.append(line)
     else:
-        print "Error: No access to %s" % line
+        print("Error: No access to {}",format(line))
 
     time.sleep(0.05)
+
+with open('valid.txt', 'w') as validf:
+    validf.write('\n'.join(outrows))

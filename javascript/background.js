@@ -2,8 +2,7 @@
 // onNetwork now comes from an LSO
 parseLocalStorage();
 
-var danforthProxyURL = '.libproxy.wustl.edu';
-var beckerProxyURL = '.beckerproxy.wustl.edu';
+var proxyURL = '.access.library.miami.edu';
 
 // Once per session, append "?holding=wustlmlib" to PubMed.
 var rewrotePubMedThisSession = false;
@@ -15,54 +14,6 @@ var networkTag = '';
 // Per poissoncdf(), this is probably friendly. Hell, MSVPN is way more active.
 var refreshTimeoutHandle;
 var refreshTimeoutMilliseconds = 900000;
-
-// Are we at WashU? SLCH? WUSM? Off campus!?!
-// TODO: At start, guess state from last session. If we're restoring lots of closed tabs on campus at restart, we might incorrectly assume off-campus.
-function detectNetworkState() {
-    // This will pass an HTTP_ORIGIN flag with the Chrome Extension ID so Becker
-    // can contact me or block the extension if it causes any problems.
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "https://becker.wustl.edu/sites/all/themes/bml_theme2/js/network-indicator-script3.php", true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            if (xhr.status == 200) {
-                var resp = JSON.parse(xhr.responseText.substring(1, xhr.responseText.length - 1));
-                if (resp.networkTag == "WUSTL" || resp.networkTag == "WUSM") {
-                    onNetwork = true;
-                    localStorage.onNetwork = true; // I don't quite trust the LSO API yet, which is why we have this duplication.
-                    beckerProxyURL = '.beckerproxy.wustl.edu';
-                    networkTag = resp.networkTag;
-                } else if (resp.networkTag == "SLCH" || resp.networkTag == "BJH" || resp.networkTag == "BJC") {
-                    onNetwork = false; // I think most of these networks have ~zero journals available.
-                    // TODO: Whitelist the few sites that are OK, like UpToDate.
-                    localStorage.onNetwork = false;
-                    beckerProxyURL = '.beckerproxy.wustl.edu';
-                    networkTag = resp.networkTag;
-                } else if (resp.networkTag == "OFF") {
-                    onNetwork = false;
-                    localStorage.onNetwork = false;
-                    beckerProxyURL = '.beckerproxy.wustl.edu';
-                    networkTag = resp.networkTag;
-                } else {
-                    // Something weird happened. We don't update onNetwork, since this could be
-                    // a timed redetection that failed, so we'll preserve the previous state.
-                    console.warn('Error: Unknown response from Becker:' + resp.networkTag);
-                    writeToRemoteLog('Becker-Unknown-Response_' + resp.networkTag);
-                    setTimeout(function(){ detectNetworkState(); }, 15000);
-                }
-                console.info('Detection event: onNetwork: ' + onNetwork + ', networkTag: ' + resp.networkTag);
-                clearTimeout(refreshTimeoutHandle);
-                refreshTimeoutHandle = setTimeout(function(){ detectNetworkState(); }, refreshTimeoutMilliseconds);
-            } else {
-                // Becker XHR returned status != 200. Maybe a network error?
-                console.warn('Error from Becker: Retrying in 15s.');
-                setTimeout(function(){ detectNetworkState(); }, 15000);
-            }
-        }
-    };
-    xhr.send();
-}
-detectNetworkState();
 
 // Listener for the options page
 chrome.extension.onRequest.addListener(
@@ -80,57 +31,27 @@ chrome.extension.onRequest.addListener(
     });
 
 
-// According to Becker, these sites do NOT require a proxy for these networks
-var bjcAndSlchWhitelist = {'accessmedicine.com':1,'online.statref.com':1,'uptodate.com':1,'www.accessmedicine.com':1,'www.uptodate.com':1};
-var slchOnlyWhitelist = {'sciencedirect.com':1,'www.sciencedirect.com':1,'mdconsult.com':1,'www.mdconsult.com':1,'aci.schattauer.de':1,
-    'aapgrandrounds.aappublications.org':1,'aapnews.aappublications.org':1,'hosppeds.aappublications.org':1,'neoreviews.aappublications.org':1,
-    'pediatrics.aappublications.org':1,'pedsinreview.aappublications.org':1}
+var whitelist = {'accessmedicine.com':1,'online.statref.com':1,'uptodate.com':1,'www.accessmedicine.com':1,'www.uptodate.com':1};
 
 // The user wants auto-redirection and is off-network,
 // so we perform URL parsing and (maybe) redirection
 function checkURLforRedirection(tabId, parsedURL) {
     // First, get out of here if a network has special "whitelisted" journals
-    if (networkTag == "BJC" || networkTag == "BJH" || networkTag == "SLCH") {
-        if (bjcAndSlchWhitelist.hasOwnProperty(parsedURL.host)) {
-            return false;
-        }
-        if (networkTag == "SLCH") {
-            if (slchOnlyWhitelist.hasOwnProperty(parsedURL.host)) {
-                return false;
-            }
-        }
+    if (whitelist.hasOwnProperty(parsedURL.host)) {
+        return false;
     }
 
-    // See if a journal is in the "intersect" list (available at Becker & Danforth)
-    if (intersect_journals.hasOwnProperty(parsedURL.host)) {
-        if (optPreferDanforth || (optEnableDanforth && !optEnableBecker)) {
-            doRedirectToProxy(tabId, parsedURL, danforthProxyURL);
-            return true;
-        } else {
-            doRedirectToProxy(tabId, parsedURL, beckerProxyURL);
-            return true;
-        }
+    if (journals.hasOwnProperty(parsedURL.host)) {
+        doRedirectToProxy(tabId, parsedURL);
+        return true;
     }
 
-    // We're still here, so the journal is not in intersect_journals.
-    if (optEnableDanforth) {
-        if (danforth_journals.hasOwnProperty(parsedURL.host)) {
-            doRedirectToProxy(tabId, parsedURL, danforthProxyURL);
-            return true;
-        }
-    }
-    if (optEnableBecker) {
-        if (becker_journals.hasOwnProperty(parsedURL.host)) {
-            doRedirectToProxy(tabId, parsedURL, beckerProxyURL);
-            return true;
-        }
-    }
     return false;
 }
 
 // Redirect the page using the auto-determined proxy URL
 // Modularize so we only parse the URL once (parsing is expensive!)
-function doRedirectToProxy(tabId, parsed, proxyURL, appendString) {
+function doRedirectToProxy(tabId, parsed, appendString) {
     if (!appendString) {
         appendString = '';
     }
@@ -144,13 +65,13 @@ function doRedirectToProxy(tabId, parsed, proxyURL, appendString) {
 
 // Send log data if there's a missed URL (someone had to manually click)
 // or there's a Becker network detection error.
-function writeToRemoteLog(theData) {
-    var uploader = new XMLHttpRequest();
-    var logString = "url:" + encodeURIComponent(theData) + ",auto:" + optAutoRedirect +
-        ",onNet:" + onNetwork + ",tag:" + networkTag;
-    uploader.open("GET", "https://update.epoxate.com/becker-extension/log.py?" + logString, true);
-    uploader.send();
-}
+// function writeToRemoteLog(theData) {
+//     var uploader = new XMLHttpRequest();
+//     var logString = "url:" + encodeURIComponent(theData) + ",auto:" + optAutoRedirect +
+//         ",onNet:" + onNetwork + ",tag:" + networkTag;
+//     uploader.open("GET", "https://update.epoxate.com/becker-extension/log.py?" + logString, true);
+//     uploader.send();
+// }
 
 // Listen for pending URL loads
 // WARNING: Pre-rendered tabs from URL prediction (or link hints) cause oddities with onBeforeNavigate,
@@ -161,14 +82,14 @@ function checkNavObject(frameId, tabId, url) {
     // frameId will match "0" for webNavigation object, and "Undefined" for tabs
     if (optAutoRedirect && frameId === 0) {
         var parsedURL = parseUri(url);
-        if (optEnableBecker && parsedURL.host == "www.ncbi.nlm.nih.gov") {
+        if (parsedURL.host == "www.ncbi.nlm.nih.gov") {
             // Redirect PubMed journals to add ?holding flag.
             // This is useful whether we are on or off network.
             if (!rewrotePubMedThisSession) {
                 if (parsedURL.relative == "/pubmed/" || parsedURL.relative == "/pubmed"
                     || parsedURL.relative == "/pmc/" || parsedURL.relative.match(/^\/pubmed\/\d{6,}$/)) {
                     // Redirect with no proxy url, but an appendString
-                    doRedirectToProxy(tabId, parsedURL, "", "?holding=wustlmlib");
+                    doRedirectToProxy(tabId, parsedURL, "?otool=flumrlib");
                     rewrotePubMedThisSession = true;
                     setTimeout(function(){ rewrotePubMedThisSession = false; }, 7200000); // Re-do this every 2 hours.
                 }
@@ -210,7 +131,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     // We check for HTTP/HTTPS only (no chrome://), and that "proxy.wustl.edu" isn't at the end of the
     // string, otherwise we're probably already at [becker|lib]proxy.wustl.edu.
     if (parsedURL.protocol == 'http' || parsedURL.protocol == 'https') {
-        if (parsedURL.host.substring(parsedURL.host.length - 15) != 'proxy.wustl.edu') {
+        if (parsedURL.host.substring(parsedURL.host.length - 25) != '.access.library.miami.edu') {
             if (hint_urls.hasOwnProperty(parsedURL.host)) {
                 // Warn users if they're doing something unnecessary.
                 // In this case, do NOT redirect these URLs.
@@ -218,18 +139,13 @@ chrome.browserAction.onClicked.addListener(function (tab) {
             } else {
                 // Warn on-network redirects, but don't block them
                 if (onNetwork) {
-                    showUserHint('You\'re on a WashU network, so you probably don\'t need a proxy.');
+                    showUserHint('You\'re on a Miami network, so you probably don\'t need a proxy.');
                 }
-                // TODO: Handle Danforth differently, since they don't seem to like SSL as much.
                 // TODO: Consider dropping HTTPS support? Is this useful?
                 if (parsedURL.protocol == 'https') {
                     parsedURL.host = parsedURL.host.replace(/\./g, '-');
                 }
-                if (optPreferDanforth || (!optEnableBecker && optEnableDanforth)) {
-                    doRedirectToProxy(tab.id, parsedURL, danforthProxyURL);
-                } else {
-                    doRedirectToProxy(tab.id, parsedURL, beckerProxyURL);
-                }
+                doRedirectToProxy(tab.id, parsedURL);
             }
         } else {
             // User clicked even though we're already proxified
@@ -242,7 +158,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     // If we've been manually clicked (and auto-triggering is enabled), the journal
     // is missing from our list. Let's send the journal URL to the cloud logger.
     // We log non-http/https here in case we're missing something (ftp sites for journal data?)
-    if (!tab.incognito && !optUsageOptOut) {
-        writeToRemoteLog(parsedURL.host);
-    }
+    // if (!tab.incognito && !optUsageOptOut) {
+    //     writeToRemoteLog(parsedURL.host);
+    // }
 });

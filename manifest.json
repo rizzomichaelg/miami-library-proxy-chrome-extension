@@ -1,9 +1,9 @@
 {
     "manifest_version": 2,
-    "name": "Auto Library Proxy Access for WashU",
-    "version": "2015.11.23",
-    "author": "Nick Semenkovich",
-    "description": "Automatically load journal websites using Becker and Libproxy. By Nick Semenkovich <semenko@alum.mit.edu>",
+    "name": "Auto Library Proxy Access for Miami",
+    "version": "2019.09.04",
+    "author": "Mike Rizzo",
+    "description": "Automatically load journal websites using University of Miami Proxy. By Mike Rizzo",
     "background": {
         "scripts": ["javascript/lso.js", "javascript/parseuri.js", "javascript/journals.js", "javascript/userhint.js", "javascript/background.js"]
     },
@@ -16,10 +16,10 @@
     "permissions": [
         "tabs", "webNavigation", "https://becker.wustl.edu/*", "https://update.epoxate.com/becker-extension/*", "notifications"
     ],
-    "content_security_policy": "script-src 'self' https://becker.wustl.edu; object-src 'self' https://becker.wustl.edu; connect-src 'self' https://becker.wustl.edu https://update.epoxate.com",
+    "content_security_policy": "script-src 'self' https://access.library.miami.edu; object-src 'self' https://access.library.miami.edu; connect-src 'self' https://access.library.miami.edu https://update.epoxate.com",
     "browser_action": {
         "default_icon": "images/schollidesign19.png",
-        "default_title": "Reload using WashU Proxy"
+        "default_title": "Reload using Miami Proxy"
     },
     "web_accessible_resources": [ "images/schollidesign48.png" ]
 }
