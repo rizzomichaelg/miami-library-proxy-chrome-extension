@@ -35,7 +35,6 @@ function init() {
     parseLocalStorage();
     $('autoRedirect').checked = optAutoRedirect;
     $('usageOptOut').checked = optUsageOptOut;
-    buttonLogic();
     // Show user their detected network
     updateStatusBar();
 }

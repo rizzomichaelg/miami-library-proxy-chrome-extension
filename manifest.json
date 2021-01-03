@@ -14,7 +14,7 @@
     },
     "options_page": "views/options.html",
     "permissions": [
-        "tabs", "webNavigation", "https://becker.wustl.edu/*", "https://update.epoxate.com/becker-extension/*", "notifications"
+        "tabs", "webNavigation", "https://calder.med.miami.edu/*", "notifications"
     ],
     "content_security_policy": "script-src 'self' https://access.library.miami.edu; object-src 'self' https://access.library.miami.edu; connect-src 'self' https://access.library.miami.edu https://update.epoxate.com",
     "browser_action": {
