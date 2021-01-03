@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Auto Library Proxy Access for Miami",
-    "version": "2019.09.04",
+    "version": "2020.01.03",
     "author": "Mike Rizzo",
     "description": "Automatically load journal websites using University of Miami Proxy. By Mike Rizzo",
     "background": {
