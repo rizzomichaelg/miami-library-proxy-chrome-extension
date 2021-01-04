@@ -1,6 +1,6 @@
 # Miami Library Chrome Extension
 
-Install the extension for Chrome at [the Chrome Web Store](https://chrome.google.com/webstore/detail/).
+Install the extension for Chrome at [the Chrome Web Store](https://chrome.google.com/webstore/detail/auto-library-proxy-access/lgdaghheeajbnnhhjeimkogdifbkalah?hl=en&authuser=0).
 
 ## Overview
 
