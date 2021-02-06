@@ -29,7 +29,7 @@ NOTE: This extension requires a Cane ID and library proxy access.
 Based on by  [WashU Library Chrome Extension](https://github.com/semenko/washu-library-proxy-chrome-extension) by [Nick Semenkovich](https://github.com/semenko/)
 
 ## License
-Copyright 2019, Mike Rizzo
+Copyright 2020 - Present, Michael G. Rizzo, Jr.
 
 Released under the MIT License. See LICENSE for details.
 
